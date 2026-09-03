@@ -27,19 +27,15 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
-            - name: Deploy to EC2 using SSM
-        run: |
-          aws ssm send-command \
-            --instance-ids i-099e0d1642265f111 \
-            --document-name "AWS-RunShellScript" \
-            --parameters 'commands=[
-              "docker rm -f devops-project-container 2>/dev/null || true",
-              "aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 236087862934.dkr.ecr.ap-south-1.amazonaws.com",
-              "docker pull 236087862934.dkr.ecr.ap-south-1.amazonaws.com/devops-project:latest",
-              "docker run --name devops-project-container 236087862934.dkr.ecr.ap-south-1.amazonaws.com/devops-project:latest"
-            ]' \
-            --region ap-south-1
         run: docker build -t 236087862934.dkr.ecr.ap-south-1.amazonaws.com/devops-project:latest .
 
       - name: Push Docker image to ECR
         run: docker push 236087862934.dkr.ecr.ap-south-1.amazonaws.com/devops-project:latest
+
+      - name: Deploy to EC2 using SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids i-099e0d1642265f111 \
+            --document-name AWS-RunShellScript \
+            --parameters 'commands=["docker rm -f devops-project-container 2>/dev/null || true","aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 236087862934.dkr.ecr.ap-south-1.amazonaws.com","docker pull 236087862934.dkr.ecr.ap-south-1.amazonaws.com/devops-project:latest","docker run --name devops-project-container 236087862934.dkr.ecr.ap-south-1.amazonaws.com/devops-project:latest"]' \
+            --region ap-south-1
