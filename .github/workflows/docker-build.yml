@@ -1,12 +1,12 @@
-name: Docker Build CI
+name: Docker Build and Push to ECR
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+
+permissions:
+  contents: read
 
 jobs:
   docker-build:
@@ -16,5 +16,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Build Docker image
-        run: docker build -t ajith-nginx:v1 .
+        run: docker build -t 236087862934.dkr.ecr.ap-south-1.amazonaws.com/devops-project:latest .
+
+      - name: Push Docker image to ECR
+        run: docker push 236087862934.dkr.ecr.ap-south-1.amazonaws.com/devops-project:latest
